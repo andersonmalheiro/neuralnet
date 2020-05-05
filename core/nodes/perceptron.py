@@ -1,13 +1,18 @@
 import numpy as np
-from core.activations import relu, sigmoid, softmax, tanh
+import core.activations as af
 import types
 
+__all__ = ['Perceptron']
+
 ACTIVATIONS = {
-    "relu": relu,
-    "sigmoid": sigmoid,
-    "softmax": softmax,
-    "tanh": tanh
+    "relu": af.relu,
+    "sigmoid": af.sigmoid,
+    "softmax": af.softmax,
+    "tanh": af.tanh,
+    "linear": af.linear,
 }
+
+np.random.seed(1)
 
 
 class Perceptron(object):
@@ -18,8 +23,8 @@ class Perceptron(object):
 
     Parameters
     ----------
-    inputs : array_like
-        an array of input values
+    num_inputs : int
+        number of inputs
 
     bias : float
         the perceptron bias
@@ -33,13 +38,12 @@ class Perceptron(object):
 
     """
 
-    def __init__(self, inputs, bias, weights, activation):
-        if len(inputs) != len(weights):
-            raise Exception('Inputs and weights must have same length')
+    def __init__(self, num_inputs, bias=0, activation='linear'):
+        self.bias = bias
+        if num_inputs <= 0:
+            raise Exception('`num_inputs` must be a positive integer value')
         else:
-            self.inputs = inputs
-            self.bias = bias
-            self.weights = weights
+            self.weights = 2 * np.random.random((3, 1)) - 1
 
         if type(activation) is str:
             if activation in ACTIVATIONS.keys():
@@ -50,8 +54,11 @@ class Perceptron(object):
         elif type(activation) is types.FunctionType:
             self.activation = activation
 
-    def _combine(self):
-        return self.bias + np.sum(np.multiply(self.weights, self.inputs))
+    def update_weights(self, w):
+        self.weights = w
 
-    def activate(self):
-        return self.activation(self._combine())
+    def __combine(self, inputs):
+        return self.bias + np.dot(inputs, self.weights)
+
+    def activate(self, inputs):
+        return self.activation(self.__combine(inputs))
